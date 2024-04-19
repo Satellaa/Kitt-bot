@@ -1,6 +1,6 @@
 # Smol Lilac [<img src="https://img.shields.io/badge/invite%20to-discord-brightgreen?style=for-the-badge" alt="Invite to Discord" align="right" />](https://discord.com/api/oauth2/authorize?client_id=1082275634757242890&permissions=277025474560&scope=bot%20applications.commands)
 
-A free open-source Discord bot for looking up card prices in Yu-Gi-Oh! Official Card Game.
+A Discord bot for looking up card prices in Yu-Gi-Oh! Official Card Game.
 
 See the [docs](docs/commands) for details on how to use the commands.
 

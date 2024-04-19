@@ -17,6 +17,8 @@
 
 Find all prices for the card with this English name.
 
+> The prefix version of this command is `$cp`
+
 ### Parameters
 
 Name | Required? | Description | Type
@@ -26,6 +28,8 @@ Name | Required? | Description | Type
 ## `/prices_by_password`
 
 Find all prices for the card with this password.
+
+> The prefix version of this command is `$cpp`
 
 ### Parameters
 
@@ -37,6 +41,8 @@ Name | Required? | Description | Type
 
 Find all prices for the card with this official database ID.
 
+> The prefix version of this command is `$cpi`
+
 ### Parameters
 
 Name | Required? | Description | Type
@@ -46,6 +52,8 @@ Name | Required? | Description | Type
 ## `/prices_by_set_number`
 
 Find all prices for this set number
+
+> The prefix version of this command is `$pp`
 
 ### Parameters
 
