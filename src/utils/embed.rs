@@ -37,7 +37,7 @@ fn create_base_embed(card: &Card) -> CreateEmbed {
 	CreateEmbed::new()
 		.title(&card.name.en)
 		.thumbnail(format!("https://images.ygoprodeck.com/images/cards_cropped/{}.jpg", &card.password))
-		.color(Colour::PURPLE)
+		.color(Colour::from_rgb(238, 190, 184))
 		.timestamp(Timestamp::now())
 		.url(format!("https://yugipedia.com/wiki/{}", &card.konami_id))
 }

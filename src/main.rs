@@ -1,9 +1,9 @@
-use mongodb::{Client, options::ClientOptions};
 use serenity::prelude::*;
-use anyhow::Context as _;
-use poise::serenity_prelude as serenity;
 use shuttle_runtime::SecretStore;
 use std::sync::Arc;
+use poise::serenity_prelude as serenity;
+use anyhow::Context as _;
+use mongodb::{Client, options::ClientOptions};
 
 mod utils;
 mod commands;
@@ -13,11 +13,15 @@ use utils::{
 	types::Data
 };
 
-use commands::card_prices::{
-	prices_by_name,
-	prices_by_database_id,
-	prices_by_password,
-	prices_by_set_number
+use commands::{
+	card_prices::{
+		prices_by_name,
+		prices_by_database_id,
+		prices_by_password,
+		prices_by_set_number
+	},
+	help::help,
+	event_handler::event_handler
 };
 
 
@@ -31,7 +35,7 @@ async fn serenity(
 		.context("'ANON' was not found")?;
 	
 	let mut client_options = ClientOptions::parse(uri).await.expect("Bad connection");
-	client_options.app_name = Some("Smol Lilac".to_string());
+	client_options.app_name = Some("Kitt".to_string());
 	
 	let client = Client::with_options(client_options).expect("Bad connection");
 	let database = client.database("data");
@@ -45,12 +49,15 @@ async fn serenity(
 	
 	let framework = poise::Framework::builder()
 		.options(poise::FrameworkOptions {
-			commands: vec![prices_by_name(), prices_by_database_id(), prices_by_password(), prices_by_set_number()],
+			commands: vec![prices_by_name(), prices_by_database_id(), prices_by_password(), prices_by_set_number(), help()],
 			prefix_options: poise::PrefixFrameworkOptions {
 				prefix: Some("$".into()),
 				edit_tracker: Some(Arc::new(poise::EditTracker::for_timespan(std::time::Duration::from_secs(3600)))),
 				case_insensitive_commands: true,
 				.. Default::default()
+			},
+			event_handler: |ctx, event, framework, data| {
+				Box::pin(event_handler(ctx, event, framework, data))
 			},
 			..Default::default()
 		})

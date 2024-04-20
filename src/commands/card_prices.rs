@@ -8,12 +8,14 @@ use crate::utils::{
 	paginator::paginate
 };
 
-/// find the prices of a card by its name
+/// Find the prices of a card by its name.
+/// The prefix version of this command is `$cp`.
 #[command(
 	slash_command,
 	prefix_command,
 	track_edits,
-	aliases("cp")
+	aliases("cp"),
+	required_bot_permissions = "SEND_MESSAGES | SEND_MESSAGES_IN_THREADS | EMBED_LINKS | READ_MESSAGE_HISTORY"
 )]
 pub async fn prices_by_name(
 	ctx: Context<'_>,
@@ -27,12 +29,14 @@ pub async fn prices_by_name(
 	Ok(())
 }
 
-/// find the prices of a card by its database id
+/// Find the prices of a card by its database id.
+/// The prefix version of this command is `$cpi`.
 #[command(
 	slash_command,
 	prefix_command,
 	track_edits,
-	aliases("cpi")
+	aliases("cpi"),
+	required_bot_permissions = "SEND_MESSAGES | SEND_MESSAGES_IN_THREADS | EMBED_LINKS | READ_MESSAGE_HISTORY"
 )]
 pub async fn prices_by_database_id(
 	ctx: Context<'_>,
@@ -45,12 +49,14 @@ pub async fn prices_by_database_id(
 	Ok(())
 }
 
-/// find the prices of a card by its password
+/// Find the prices of a card by its password.
+/// The prefix version of this command is `$cpp`.
 #[command(
 	slash_command,
 	prefix_command,
 	track_edits,
-	aliases("cpp")
+	aliases("cpp"),
+	required_bot_permissions = "SEND_MESSAGES | SEND_MESSAGES_IN_THREADS | EMBED_LINKS | READ_MESSAGE_HISTORY"
 )]
 pub async fn prices_by_password(
 	ctx: Context<'_>,
@@ -63,12 +69,14 @@ pub async fn prices_by_password(
 	Ok(())
 }
 
-/// find the prices of a set number
+/// Find the prices of a set number.
+/// The prefix version of this command is `$pp`.
 #[command(
 	slash_command,
 	prefix_command,
 	track_edits,
-	aliases("pp")
+	aliases("pp"),
+	required_bot_permissions = "SEND_MESSAGES | SEND_MESSAGES_IN_THREADS | EMBED_LINKS | READ_MESSAGE_HISTORY"
 )]
 pub async fn prices_by_set_number(
 	ctx: Context<'_>,
