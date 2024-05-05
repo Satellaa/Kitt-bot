@@ -16,7 +16,7 @@ pub type EmbedsMap = HashMap<String, Vec<CreateEmbed>>;
 
 pub fn create_embeds_map(card: &Card) -> EmbedsMap {
 	card.card_prices.iter()
-		.map(|(k, prices)| (k.clone(), embeds_from_card_prices(card, prices, &k)))
+		.map(|(k, prices)| (k.clone(), embeds_from_card_prices(card, prices, k)))
 		.collect()
 }
 
@@ -29,7 +29,7 @@ fn embeds_from_card_prices(card: &Card, card_prices: &Vec<CardPrice>, market: &s
 				(get_name(card_price), get_value(card_price, exchange_rate, market), true)
 			}).collect::<Vec<_>>();
 			
-			create_base_embed(&card, exchange_rate, market).fields(fields)
+			create_base_embed(card, exchange_rate, market).fields(fields)
 		})
 		.collect()
 }

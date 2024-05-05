@@ -40,7 +40,7 @@ async fn get_card(ctx: &Context<'_>, query: QueryHolder) -> Result<Option<Card>>
 	}
 	
 	if let Some(ref mut unsorted_card) = card {
-		for (_, card_prices) in &mut unsorted_card.card_prices {
+		for card_prices in unsorted_card.card_prices.values_mut() {
 			card_prices.sort_unstable_by(|a, b| a.price.cmp(&b.price));
 		}
 	}

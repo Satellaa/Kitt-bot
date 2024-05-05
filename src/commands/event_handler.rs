@@ -33,7 +33,7 @@ pub async fn event_handler(
 		}
 		FullEvent::Message { new_message } => {
 			if new_message.mentions_me(ctx).await? && !new_message.is_own(ctx) {
-				send_info(ctx, &new_message).await?;
+				send_info(ctx, new_message).await?;
 			}
 		}
 		_ => {},
