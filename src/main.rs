@@ -6,35 +6,41 @@ use anyhow::Context as _;
 use mongodb::{Client, options::ClientOptions};
 
 mod utils;
+mod components;
 mod commands;
 
 use utils::{
 	card::Card,
-	types::Data
+	types::Data,
+	global::update_exchange_rate_periodically
 };
 
 use commands::{
-	card_prices::{
-		prices_by_name,
-		prices_by_database_id,
-		prices_by_password,
-		prices_by_set_number
+	prices::{
+		prices_name,
+		prices_database_id,
+		prices_password,
+		prices_set_number
 	},
 	help::help,
 	event_handler::event_handler
 };
-
 
 #[shuttle_runtime::main]
 async fn serenity(
     #[shuttle_runtime::Secrets] secrets: SecretStore,
 ) -> shuttle_serenity::ShuttleSerenity {
 	
+	
+	tokio::spawn(async {
+		update_exchange_rate_periodically().await;
+	});
+	
 	let uri = secrets
 		.get("ANON")
 		.context("'ANON' was not found")?;
 	
-	let mut client_options = ClientOptions::parse(uri).await.expect("Bad connection");
+	let mut client_options = ClientOptions::parse(&uri).await.expect("Bad connection");
 	client_options.app_name = Some("Kitt".to_string());
 	
 	let client = Client::with_options(client_options).expect("Bad connection");
@@ -49,7 +55,7 @@ async fn serenity(
 	
 	let framework = poise::Framework::builder()
 		.options(poise::FrameworkOptions {
-			commands: vec![prices_by_name(), prices_by_database_id(), prices_by_password(), prices_by_set_number(), help()],
+			commands: vec![prices_name(), prices_database_id(), prices_password(), prices_set_number(), help()],
 			prefix_options: poise::PrefixFrameworkOptions {
 				prefix: Some("$".into()),
 				edit_tracker: Some(Arc::new(poise::EditTracker::for_timespan(std::time::Duration::from_secs(3600)))),
