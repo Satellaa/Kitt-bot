@@ -1,4 +1,4 @@
-use poise::builtins::{HelpConfiguration, help as poise_help};
+use poise::builtins::{HelpConfiguration, autocomplete_command, help as poise_help};
 
 use crate::utils::types::{Context, Result};
 
@@ -10,7 +10,9 @@ use crate::utils::types::{Context, Result};
 )]
 pub async fn help(
 	ctx: Context<'_>,
-	#[description = "Specific command to show help about"] command: Option<String>,
+	#[description = "Specific command to show help about"]
+	#[autocomplete = "autocomplete_command"]
+	command: Option<String>,
 ) -> Result<()> {
 	let config = HelpConfiguration {
 		extra_text_at_bottom: "\
