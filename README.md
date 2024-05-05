@@ -2,11 +2,11 @@
 
 [<img src="https://cdn.discordapp.com/avatars/1082275634757242890/42488ede859a7383ccbaa7e4065a1ead.png" alt="Kitt avatar" align="right" />](https://yugipedia.com/wiki/Tri-Brigade_Kitt)
 
-A Discord bot for looking up card prices in Yu-Gi-Oh! Official Card Game.
+A Discord bot for looking up card prices in _Yu-Gi-Oh!_ Official Card Game.
 
 See the [docs](docs/commands) for details on how to use the commands.
 
-All card information, such as names, database IDs, etc., is sourced from [YAML Yugi](https://github.com/DawnbrandBots/yaml-yugi).
+All card information and prices are sourced from [YAML Yugi](https://github.com/DawnbrandBots/yaml-yugi), [Yugipedia](https://yugipedia.com/wiki/Yugipedia), [TCG Corner](https://tcg-corner.com/) and [Bigweb](https://www.bigweb.co.jp/ja/products/yugioh) via [Dotscaper](https://github.com/Satellaa/Dotscaper.git).
 
 ## Discord permissions
 
