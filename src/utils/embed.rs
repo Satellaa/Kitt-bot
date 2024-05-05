@@ -1,45 +1,52 @@
+use std::collections::HashMap;
 use poise::serenity_prelude as serenity;
 use serenity::{
 	CreateEmbed,
+	CreateEmbedFooter,
 	Colour,
 	model::Timestamp
 };
 
-use crate::utils::card::{CardPrice, Card};
+use crate::utils::{
+	card::{CardPrice, Card},
+	global::EXCHANGE_RATE
+};
 
+pub type EmbedsMap = HashMap<String, Vec<CreateEmbed>>;
 
-pub async fn embeds_from_card_prices(card: &Card) -> Vec<CreateEmbed> {
-	let mut embeds: Vec::<CreateEmbed> = Vec::new();
-	let mut fields: Vec<(String, String, bool)> = Vec::with_capacity(6);
-	let mut embed = create_base_embed(&card);
-	
-	for (i, card_price) in card.card_prices.iter().enumerate() {
-		fields.push((get_name(&card_price), get_value(&card_price), true));
-		
-		if (i + 1) % 6 == 0 {
-			embed = embed.fields(fields.clone());
-			embeds.push(embed);
-			embed = create_base_embed(&card);
-			
-			fields.clear();
-		}
-	}
-	
-	if fields.len() > 0 {
-		embed = embed.fields(fields);
-		embeds.push(embed);
-	}
-	
-	embeds
+pub fn create_embeds_map(card: &Card) -> EmbedsMap {
+	card.card_prices.iter()
+		.map(|(k, prices)| (k.clone(), embeds_from_card_prices(card, prices, &k)))
+		.collect()
 }
 
-fn create_base_embed(card: &Card) -> CreateEmbed {
-	CreateEmbed::new()
+fn embeds_from_card_prices(card: &Card, card_prices: &Vec<CardPrice>, market: &str) -> Vec<CreateEmbed> {
+	let exchange_rate: f32 = *EXCHANGE_RATE.lock().unwrap();
+	card_prices
+		.chunks(6)
+		.map(|chunk| {
+			let fields = chunk.iter().map(|card_price| {
+				(get_name(card_price), get_value(card_price, exchange_rate, market), true)
+			}).collect::<Vec<_>>();
+			
+			create_base_embed(&card, exchange_rate, market).fields(fields)
+		})
+		.collect()
+}
+
+fn create_base_embed(card: &Card, exchange_rate: f32, market: &str) -> CreateEmbed {
+	let embed = CreateEmbed::new()
 		.title(&card.name.en)
 		.thumbnail(format!("https://images.ygoprodeck.com/images/cards_cropped/{}.jpg", &card.password))
 		.color(Colour::from_rgb(238, 190, 184))
 		.timestamp(Timestamp::now())
-		.url(format!("https://yugipedia.com/wiki/{}", &card.konami_id))
+		.url(format!("https://yugipedia.com/wiki/{}", &card.konami_id));
+	
+	if market == "tcg_corner" {
+		return embed.footer(CreateEmbedFooter::new(format!("1 VND = {} JPY", exchange_rate)));
+	}
+	
+	embed
 }
 
 fn get_name(card_price: &CardPrice) -> String {
@@ -49,20 +56,21 @@ fn get_name(card_price: &CardPrice) -> String {
 	)
 }
 
-fn get_value(card_price: &CardPrice) -> String {
-	let status: &str = if card_price.is_hidden_price { "Sold Out" } else { "For Sale" };
+fn get_value(card_price: &CardPrice, exchange_rate: f32, market: &str) -> String {
+	let vnd: i32 = if market == "tcg_corner" { (card_price.price as f32 / exchange_rate) as i32 } else { card_price.price * 180 };
+	let jpy: i32 = if market == "tcg_corner" { ((card_price.price as f32 / exchange_rate) * exchange_rate) as i32 }  else { card_price.price };
 	
-	format!("YEN: {}\nVND: {}\nCondition: {}\nStatus: {}\nLast modified: <t:{}:R>",
-		&card_price.price,
-		yen_to_vnd(card_price.price),
+	format!("JPY: {}\nVND: {}\nCondition: {}\nStatus: {}\nLast modified: <t:{}:R>",
+		jpy,
+		format_vnd(vnd),
 		card_price.condition,
-		status,
+		card_price.status,
 		card_price.last_modified
 	)
 }
 
-fn yen_to_vnd(yen: i32) -> String {
-	(yen * 180)
+fn format_vnd(vnd: i32) -> String {
+	vnd
 		.abs()
 		.to_string()
 		.as_bytes()
