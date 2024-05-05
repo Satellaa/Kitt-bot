@@ -4,9 +4,10 @@ use crate::utils::{
 	card::Card,
 	types::{Context, Result},
 	search::{card_by_name, card_by_konami_id, card_by_password, card_by_set_number},
-	embed::embeds_from_card_prices,
-	paginator::paginate
+	embed::create_embeds_map,
 };
+
+use crate::components::pagination::Pagination;
 
 /// Find the prices of a card by its name.
 /// The prefix version of this command is `$cp`.
@@ -17,7 +18,7 @@ use crate::utils::{
 	aliases("cp"),
 	required_bot_permissions = "SEND_MESSAGES | SEND_MESSAGES_IN_THREADS | EMBED_LINKS | READ_MESSAGE_HISTORY"
 )]
-pub async fn prices_by_name(
+pub async fn prices_name(
 	ctx: Context<'_>,
 	#[rest]
 	#[description = "for example: Sky Striker Ace - Raye"]
@@ -38,7 +39,7 @@ pub async fn prices_by_name(
 	aliases("cpi"),
 	required_bot_permissions = "SEND_MESSAGES | SEND_MESSAGES_IN_THREADS | EMBED_LINKS | READ_MESSAGE_HISTORY"
 )]
-pub async fn prices_by_database_id(
+pub async fn prices_database_id(
 	ctx: Context<'_>,
 	#[description = "for example: 13670"]
 	database_id: i32,
@@ -58,7 +59,7 @@ pub async fn prices_by_database_id(
 	aliases("cpp"),
 	required_bot_permissions = "SEND_MESSAGES | SEND_MESSAGES_IN_THREADS | EMBED_LINKS | READ_MESSAGE_HISTORY"
 )]
-pub async fn prices_by_password(
+pub async fn prices_password(
 	ctx: Context<'_>,
 	#[description = "for example: 26077387"]
 	password: i32,
@@ -78,7 +79,7 @@ pub async fn prices_by_password(
 	aliases("pp"),
 	required_bot_permissions = "SEND_MESSAGES | SEND_MESSAGES_IN_THREADS | EMBED_LINKS | READ_MESSAGE_HISTORY"
 )]
-pub async fn prices_by_set_number(
+pub async fn prices_set_number(
 	ctx: Context<'_>,
 	#[description = "for example: 20CP-JPC02"]
 	set_number: String,
@@ -94,14 +95,18 @@ async fn respond(
 	card_result: Result<Option<Card>>,
 	identifier: &str,
 ) -> Result<()> {
-	if let Some(card) = card_result? {
-		if !card.card_prices.is_empty() {
-			let embeds = embeds_from_card_prices(&card).await;
-			paginate(ctx, &embeds).await?;
-		} else {
+	if let Some(mut card) = card_result? {
+		card.card_prices.retain(|_, arr| !arr.is_empty());
+		if card.card_prices.is_empty() {
 			ctx.say(format!("Oops! `{}` is not in stock.", card.name.en)).await?;
 		}
-	} else {
+		else {
+			let embeds_map = create_embeds_map(&card);
+			let mut pagination = Pagination::new(ctx, &embeds_map);
+			pagination.start().await?;
+		}
+	}
+	else {
 		ctx.say(format!("Could not find a card matching `{}`!", identifier)).await?;
 	}
 

@@ -45,7 +45,7 @@ pub async fn event_handler(
 async fn send_info(ctx: &Context, message: &Message) -> Result<()> {
 	let desc = "\
 ❓ Help documentation on [GitHub](https://github.com/Satellaa/Smol-Lilac-bot), or use `/help`.
-💡 Kitt is a character appearing in the artwork of the card [Tri-Brigade Kitt](https://yugipedia.com/wiki/Tri-Brigade_Kitt).
+💡 Kitt is the character appearing in the artwork of the card [Tri-Brigade Kitt](https://yugipedia.com/wiki/Tri-Brigade_Kitt).
 🟢 Licence: [GNU AGPL 3.0+](https://choosealicense.com/licenses/agpl-3.0/).";
 	
 	let embed_author = CreateEmbedAuthor::new("Kitt")
