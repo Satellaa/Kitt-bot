@@ -8,12 +8,12 @@
 
 ## Slash Commands
 
-- [`/prices_by_name`](#prices_by_name)
-- [`/prices_by_password`](#prices_by_password)
-- [`/prices_by_database_id`](#prices_by_database_id)
-- [`/prices_by_set_number`](#prices_by_set_number)
+- [`/prices_name`](#prices_name)
+- [`/prices_password`](#prices_password)
+- [`/prices_database_id`](#prices_database_id)
+- [`/prices_set_number`](#prices_set_number)
 
-## `/prices_by_name`
+## `/prices_name`
 
 Find all prices for the card with this English name.
 
@@ -25,7 +25,7 @@ Name | Required? | Description | Type
 --- | --- | --- | ---
 `name` | ✔ | Card's English name to search by, fuzzy matching supported. | text
 
-## `/prices_by_password`
+## `/prices_password`
 
 Find all prices for the card with this password.
 
@@ -37,7 +37,7 @@ Name | Required? | Description | Type
 --- | --- | --- | ---
 `password` | ✔ | The password you're searching by. | number
 
-## `/prices_by_database_id`
+## `/prices_database_id`
 
 Find all prices for the card with this official database ID.
 
@@ -49,7 +49,7 @@ Name | Required? | Description | Type
 --- | --- | --- | ---
 `database_id` | ✔ | The Database ID you're searching by. | number
 
-## `/prices_by_set_number`
+## `/prices_set_number`
 
 Find all prices for this set number
 
@@ -70,7 +70,7 @@ The following information is displayed:
 
 - card name, hyperlinked to the Yugipedia data source
 - frameless card artwork, if available
-- card prices
+- prices
   - set number
   - rarity
   - price in Japanese YEN
@@ -78,3 +78,5 @@ The following information is displayed:
   - condition
   - sold out or for sale
   - last modified
+- - a menu to select vendor
+- page change button
