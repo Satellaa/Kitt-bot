@@ -1,15 +1,5 @@
 use serde::{Deserialize, Serialize, Deserializer};
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct CardPrice {
-	pub bigweb_id: i32,
-	pub set_number: String,
-	pub price: i32,
-	pub rarity: String,
-	pub condition: String,
-	pub is_hidden_price: bool,
-	pub last_modified: u32,
-}
+use std::collections::HashMap;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct CardName {
@@ -25,8 +15,14 @@ pub struct Set {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct Sets {
-	pub ja: Vec<Set>,
+pub struct CardPrice {
+	pub id: i32,
+	pub set_number: String,
+	pub price: i32,
+	pub rarity: String,
+	pub condition: String,
+	pub status: String,
+	pub last_modified: u32,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -35,8 +31,8 @@ pub struct Card {
 	#[serde(deserialize_with = "default_on_null_i32")]
 	pub password: i32,
 	pub konami_id: i32,
-	pub sets: Sets,
-	pub card_prices: Vec<CardPrice>
+	pub sets: HashMap<String, Vec<Set>>,
+	pub card_prices: HashMap<String, Vec<CardPrice>>
 }
 
 fn default_on_null_i32<'de, D>(deserializer: D) -> Result<i32, D::Error>
