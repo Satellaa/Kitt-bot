@@ -20,7 +20,7 @@ pub fn create_embeds_map(card: &Card) -> EmbedsMap {
 		.collect()
 }
 
-fn embeds_from_card_prices(card: &Card, card_prices: &Vec<CardPrice>, market: &str) -> Vec<CreateEmbed> {
+fn embeds_from_card_prices(card: &Card, card_prices: &[CardPrice], market: &str) -> Vec<CreateEmbed> {
 	let exchange_rate: f32 = *EXCHANGE_RATE.lock().unwrap();
 	card_prices
 		.chunks(6)
