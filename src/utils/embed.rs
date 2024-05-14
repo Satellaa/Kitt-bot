@@ -3,6 +3,7 @@ use poise::serenity_prelude as serenity;
 use serenity::{
 	CreateEmbed,
 	CreateEmbedFooter,
+	CreateEmbedAuthor,
 	Colour,
 	model::Timestamp
 };
@@ -36,6 +37,7 @@ fn embeds_from_card_prices(card: &Card, card_prices: &[CardPrice], market: &str)
 
 fn create_base_embed(card: &Card, exchange_rate: f32, market: &str) -> CreateEmbed {
 	let embed = CreateEmbed::new()
+		.author(CreateEmbedAuthor::new(market.to_uppercase()))
 		.title(&card.name.en)
 		.thumbnail(format!("https://images.ygoprodeck.com/images/cards_cropped/{}.jpg", &card.password))
 		.color(Colour::from_rgb(238, 190, 184))
