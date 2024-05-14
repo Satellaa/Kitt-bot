@@ -40,12 +40,20 @@ async fn serenity(
 		.get("ANON")
 		.context("'ANON' was not found")?;
 	
+	let db_name = secrets
+		.get("DB")
+		.context("'DB' was not found")?;
+	
+	let coll_name = secrets
+		.get("COLL")
+		.context("'COLL' was not found")?;
+	
 	let mut client_options = ClientOptions::parse(&uri).await.expect("Bad connection");
 	client_options.app_name = Some("Kitt".to_string());
 	
 	let client = Client::with_options(client_options).expect("Bad connection");
-	let database = client.database("data");
-	let coll = database.collection::<Card>("cards");
+	let database = client.database(&db_name);
+	let coll = database.collection::<Card>(&coll_name);
 	
 	let token = secrets
 		.get("DISCORD_TOKEN")
