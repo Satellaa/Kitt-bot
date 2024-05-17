@@ -32,7 +32,9 @@ pub async fn event_handler(
 			ctx.set_presence(Some(activity), status);
 		}
 		FullEvent::Message { new_message } => {
-			if new_message.mentions_me(ctx).await? && !new_message.is_own(ctx) {
+			if new_message.content.contains(&ctx.cache.as_ref().current_user().id.get().to_string()) && !new_message.is_own(ctx)
+				&& new_message.mentions_me(ctx).await?
+			{
 				send_info(ctx, new_message).await?;
 			}
 		}
