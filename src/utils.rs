@@ -1,4 +1,3 @@
-pub mod card;
 pub mod search;
 pub mod query;
 pub mod types;

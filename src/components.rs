@@ -1,2 +1,4 @@
 pub mod helper;
-pub mod pagination;
+mod pagination;
+
+pub use pagination::Pagination;

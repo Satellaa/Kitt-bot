@@ -8,6 +8,7 @@ use serenity::{
 	CreateEmbed,
 	CreateEmbedAuthor,
 	Colour,
+	cache::Cache,
 	gateway::ActivityData,
 	model::user::OnlineStatus
 };
@@ -32,7 +33,7 @@ pub async fn event_handler(
 			ctx.set_presence(Some(activity), status);
 		}
 		FullEvent::Message { new_message } => {
-			if new_message.content.contains(&ctx.cache.as_ref().current_user().id.get().to_string()) && !new_message.is_own(ctx)
+			if new_message.content.contains(&ctx.cache.as_ref().current_user().id.get().to_string()) && !is_own(ctx, &new_message)
 				&& new_message.mentions_me(ctx).await?
 			{
 				send_info(ctx, new_message).await?;
@@ -63,4 +64,8 @@ async fn send_info(ctx: &Context, message: &Message) -> Result<()> {
 	message.channel_id.send_message(ctx, CreateMessage::new().add_embed(embed)).await?;
 	
 	Ok(())
+}
+
+fn is_own(cache: impl AsRef<Cache>, message: &Message) -> bool {
+	message.author.id == cache.as_ref().current_user().id
 }
