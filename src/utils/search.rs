@@ -28,7 +28,7 @@ async fn get_card(ctx: &Context<'_>, query: QueryHolder) -> Result<Option<Card>>
 		QueryHolder::Pipeline(pipeline) => {
 			card_collection.aggregate(pipeline).await?
 				.try_next().await?
-				.map(|doc| from_document::<Card>(doc))
+				.map(from_document::<Card>)
 				.transpose()?
 		},
 		QueryHolder::Filter(filter) => card_collection.find_one(filter).await?,
