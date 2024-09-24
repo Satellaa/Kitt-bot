@@ -11,12 +11,25 @@ impl QueryHolder {
 			doc! {
 				"$search": {
 					"index": index,
-					"text": {
-						"query": query,
-						"path": path,
-						"fuzzy": {
-							"maxEdits": 1
-						}
+					"compound": {
+						"should": [
+							doc! {
+								"text": {
+									"query": query,
+									"path": path,
+									"fuzzy": {
+										"maxEdits": 1
+									}
+								}
+							},
+							doc! {
+								"phrase": {
+									"query": query,
+									"path": path,
+									"slop": 0
+								}
+							}
+						]
 					}
 				}
 			}
