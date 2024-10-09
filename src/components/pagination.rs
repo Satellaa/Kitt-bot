@@ -1,6 +1,5 @@
 use std::collections::BTreeMap;
 use poise::serenity_prelude as serenity;
-use poise::reply::CreateReply;
 use serenity::{
 	collector::ComponentInteractionCollector,
 	ComponentInteraction,
@@ -13,7 +12,7 @@ use serenity::{
 	CreateEmbed,
 	CreateInteractionResponse,
 	CreateInteractionResponseMessage,
-	ButtonStyle::Secondary
+	ButtonStyle,
 };
 
 use crate::utils::{
@@ -29,32 +28,23 @@ type ComponentsMap = BTreeMap<i32, CreateActionRow>;
 pub struct Pagination<'a> {
 	ctx: &'a Context<'a>,
 	card_prices: &'a EmbedsMap,
-	component: CreateComponent,
+	component: ComponentIds,
 	components: ComponentsMap,
-	state: PaginationState
+	state: PaginationState,
 }
 
 impl<'a> Pagination<'a> {
 	pub fn new(ctx: &'a Context<'a>, card_prices: &'a EmbedsMap) -> Self {
 		let ctx_id = ctx.id();
-		let component = CreateComponent::new(&ctx_id);
-		let mut components = ComponentsMap::new();
-		
-		if card_prices.len() > 1 {
-			components.insert(SELECT_MENU_KEY, component.create_select_menu_component(card_prices, "Select a vendor"));
-		}
-		else {
-			let mut comps = component.create_button_component();
-			Self::update_page_count(&mut comps, &component.page_counter_id, 1, card_prices.values().next().unwrap().len());
-			components.insert(BUTTONS_KEY, comps);
-		};
+		let component = ComponentIds::new(&ctx_id);
+		let components = Self::initialize_components(&component, card_prices);
 		
 		Self {
 			ctx,
 			card_prices,
 			component,
 			components,
-			state: PaginationState::new(),
+			state: PaginationState::default(),
 		}
 	}
 	
@@ -74,15 +64,30 @@ impl<'a> Pagination<'a> {
 		Ok(())
 	}
 	
-	fn create_reply(&mut self) -> CreateReply {
-		let mut reply = CreateReply::default()
+	fn initialize_components(component: &ComponentIds, card_prices: &EmbedsMap) -> ComponentsMap {
+		let mut components = ComponentsMap::new();
+		
+		if card_prices.len() > 1 {
+			components.insert(SELECT_MENU_KEY, component.create_select_menu_component(card_prices, "Select a vendor"));
+		}
+		else {
+			let mut buttons = component.create_button_component();
+			Self::update_page_count(&mut buttons, &component.page_counter_id, 1, card_prices.values().next().unwrap().len());
+			components.insert(BUTTONS_KEY, buttons);
+		}
+		
+		components
+	}
+	
+	fn create_reply(&mut self) -> poise::CreateReply {
+		let mut reply = poise::CreateReply::default()
 			.components(vec![self.components.values().next().unwrap().clone()])
 			.reply(true);
 		
 		if self.card_prices.len() == 1 {
-			let market = self.card_prices.keys().next().unwrap().to_string();
-			reply = reply.embed(self.card_prices[&market][0].clone());
-			self.state.update_market(market);
+			let market = self.card_prices.keys().next().unwrap();
+			reply = reply.embed(self.card_prices[market][0].clone());
+			self.state.update_market(market.to_string());
 		}
 		
 		reply
@@ -94,37 +99,40 @@ impl<'a> Pagination<'a> {
 			return Ok(());
 		}
 		
-		// my personal opinion is that `if, else if, else` looks better here than `match`
-		if interaction.data.custom_id == self.component.select_menu_id {
-			if let ComponentInteractionDataKind::StringSelect { values } = &interaction.data.kind {
-				if self.components.len() == 1 {
-					self.components.insert(BUTTONS_KEY, self.component.create_button_component());
-				}
-				else {
-					self.state.reset();
-				}
-				self.state.update_market(values[0].clone());
-			}
-		}
-		else if interaction.data.custom_id == self.component.next_id {
-			self.state.next_page(self.card_prices[&self.state.market].len());
-		}
-		else if interaction.data.custom_id == self.component.prev_id {
-			self.state.prev_page(self.card_prices[&self.state.market].len());
-		}
-		else {
-			return Ok(());
+		match interaction.data.custom_id.as_str() {
+			id if id == self.component.select_menu_id => self.handle_select_menu(interaction),
+			id if id == self.component.next_id => self.state.next_page(self.card_prices[&self.state.market].len()),
+			id if id == self.component.prev_id => self.state.prev_page(self.card_prices[&self.state.market].len()),
+			_ => return Ok(()),
 		}
 		
-		Self::update_page_count(self.components.get_mut(&BUTTONS_KEY).unwrap(), &self.component.page_counter_id, self.state.current_page + 1, self.card_prices[&self.state.market].len());
+		self.update_components();
 		self.update_message(interaction, self.card_prices[&self.state.market][self.state.current_page].clone()).await?;
 		
 		Ok(())
 	}
 	
+	fn handle_select_menu(&mut self, interaction: &ComponentInteraction) {
+		if let ComponentInteractionDataKind::StringSelect { values } = &interaction.data.kind {
+			if self.components.len() == 1 {
+				self.components.insert(BUTTONS_KEY, self.component.create_button_component());
+			}
+			else {
+				self.state.reset();
+			}
+			self.state.update_market(values[0].clone());
+		}
+	}
+	
+	fn update_components(&mut self) {
+		if let Some(buttons) = self.components.get_mut(&BUTTONS_KEY) {
+			Self::update_page_count(buttons, &self.component.page_counter_id, self.state.current_page + 1, self.card_prices[&self.state.market].len());
+		}
+	}
+	
 	fn update_page_count(
 		buttons: &mut CreateActionRow,
-		page_counter_id: &String,
+		page_counter_id: &str,
 		current: usize,
 		total: usize
 	) {
@@ -132,7 +140,7 @@ impl<'a> Pagination<'a> {
 			let page_count = format!("{}/{}", current, total);
 			buttons[1] = CreateButton::new(page_counter_id)
 				.label(page_count)
-				.style(Secondary)
+				.style(ButtonStyle::Secondary)
 				.disabled(true);
 		}
 	}
@@ -151,15 +159,14 @@ impl<'a> Pagination<'a> {
 	}
 }
 
-struct CreateComponent {
+struct ComponentIds {
 	select_menu_id: String,
 	prev_id: String,
 	page_counter_id: String,
 	next_id: String,
 }
 
-impl CreateComponent {
-	
+impl ComponentIds {
 	fn new(ctx_id: &u64) -> Self {
 		Self {
 			select_menu_id: format!("{}select_menu", ctx_id),
@@ -170,19 +177,12 @@ impl CreateComponent {
 	}
 	
 	fn create_select_menu_component(&self, card_prices: &EmbedsMap, placeholder: &str) -> CreateActionRow {
-		let mut select_menu_options = Vec::<CreateSelectMenuOption>::new();
-		select_menu_options.extend(
-			card_prices.keys().map(|key| {
-				let description = if key == "tcg_corner" { "Asian English" } else { "Japanese" };
-				CreateSelectMenuOption::new(key.to_uppercase(), key).description(description)
-			})
-		);
+		let options = card_prices.keys().map(|key| {
+			let description = if key == "tcg_corner" { "Asian English" } else { "Japanese" };
+			CreateSelectMenuOption::new(key.to_uppercase(), key).description(description)
+		}).collect::<Vec<_>>();
 		
-		let select_menu_kind = CreateSelectMenuKind::String {
-			options: select_menu_options
-		};
-	
-		let select_menu = CreateSelectMenu::new(&self.select_menu_id, select_menu_kind)
+		let select_menu = CreateSelectMenu::new(&self.select_menu_id, CreateSelectMenuKind::String { options })
 			.placeholder(placeholder);
 	
 		CreateActionRow::SelectMenu(select_menu)
@@ -192,31 +192,25 @@ impl CreateComponent {
 		CreateActionRow::Buttons(vec![
 			CreateButton::new(&self.prev_id)
 				.emoji('◀')
-				.style(Secondary),
+				.style(ButtonStyle::Secondary),
 			CreateButton::new(&self.page_counter_id)
 				.label("")
-				.style(Secondary)
+				.style(ButtonStyle::Secondary)
 				.disabled(true),
 			CreateButton::new(&self.next_id)
 				.emoji('▶')
-				.style(Secondary),
+				.style(ButtonStyle::Secondary),
 		])
 	}
 }
 
+#[derive(Default)]
 struct PaginationState {
 	market: String,
 	current_page: usize,
 }
 
 impl PaginationState {
-	fn new() -> Self {
-		PaginationState {
-			market: String::new(),
-			current_page: 0,
-		}
-	}
-
 	fn reset(&mut self) {
 		self.current_page = 0;
 	}
