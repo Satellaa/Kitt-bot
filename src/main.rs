@@ -27,6 +27,10 @@ use commands::{
 	event_handler::event_handler
 };
 
+fn get_secret(secrets: &SecretStore, name: &str) -> Result<String, shuttle_runtime::Error> {
+	Ok(secrets.get(name).context(format!("'{name}' was not found."))?)
+}
+
 #[shuttle_runtime::main]
 async fn serenity(
 	#[shuttle_runtime::Secrets] secrets: SecretStore,
@@ -35,13 +39,15 @@ async fn serenity(
 		update_exchange_rate_periodically().await;
 	});
 
-	let uri = secrets.get("ANON").context("'ANON' was not found")?;
-	let db_name = secrets.get("DB").context("'DB' was not found")?;
-	let coll_name = secrets.get("COLL").context("'COLL' was not found")?;
-	let token = secrets.get("DISCORD_TOKEN").context("'DISCORD_TOKEN' was not found")?;
+	let uri = get_secret(&secrets, "ANON")?;
+	let db_name = get_secret(&secrets, "DB")?;
+	let coll_name = get_secret(&secrets, "COLL")?;
+	let token = get_secret(&secrets, "DISCORD_TOKEN")?;
+	let prefix = get_secret(&secrets, "PREFIX")?;
+	let bot_name = get_secret(&secrets, "BOT_NAME")?;
 
 	let mut client_options = ClientOptions::parse(&uri).await.context("Failed to parse MongoDB URI")?;
-	client_options.app_name = Some("Kitt".to_string());
+	client_options.app_name = Some(bot_name);
 
 	let client = Client::with_options(client_options).context("Failed to create MongoDB client")?;
 	let database = client.database(&db_name);
@@ -53,7 +59,7 @@ async fn serenity(
 		.options(poise::FrameworkOptions {
 			commands: vec![prices_name(), prices_database_id(), prices_password(), prices_set_number(), help()],
 			prefix_options: poise::PrefixFrameworkOptions {
-				prefix: Some("$".into()),
+				prefix: Some(prefix),
 				edit_tracker: Some(Arc::new(poise::EditTracker::for_timespan(std::time::Duration::from_secs(3600)))),
 				case_insensitive_commands: true,
 				..Default::default()

@@ -94,7 +94,7 @@ async fn respond(
 			}
 			else {
 				let embeds_map = create_embeds_map(&card);
-				let mut pagination = Pagination::new(ctx, &embeds_map);
+				let mut pagination = Pagination::new(ctx, &card.name.en, &embeds_map);
 				pagination.start().await?;
 			}
 		}
