@@ -27,6 +27,7 @@ type ComponentsMap = BTreeMap<i32, CreateActionRow>;
 
 pub struct Pagination<'a> {
 	ctx: &'a Context<'a>,
+	owner_name: &'a str,
 	card_prices: &'a EmbedsMap,
 	component: ComponentIds,
 	components: ComponentsMap,
@@ -34,13 +35,14 @@ pub struct Pagination<'a> {
 }
 
 impl<'a> Pagination<'a> {
-	pub fn new(ctx: &'a Context<'a>, card_prices: &'a EmbedsMap) -> Self {
+	pub fn new(ctx: &'a Context<'a>, owner_name: &'a str, card_prices: &'a EmbedsMap) -> Self {
 		let ctx_id = ctx.id();
 		let component = ComponentIds::new(&ctx_id);
 		let components = Self::initialize_components(&component, card_prices);
 		
 		Self {
 			ctx,
+			owner_name,
 			card_prices,
 			component,
 			components,
@@ -81,6 +83,7 @@ impl<'a> Pagination<'a> {
 	
 	fn create_reply(&mut self) -> poise::CreateReply {
 		let mut reply = poise::CreateReply::default()
+			.content(format!("**{}**", self.owner_name))
 			.components(vec![self.components.values().next().unwrap().clone()])
 			.reply(true);
 		
@@ -150,6 +153,7 @@ impl<'a> Pagination<'a> {
 			self.ctx.serenity_context(),
 			CreateInteractionResponse::UpdateMessage(
 				CreateInteractionResponseMessage::new()
+					.content("")
 					.embed(page)
 					.components(self.components.values().cloned().collect()),
 			),

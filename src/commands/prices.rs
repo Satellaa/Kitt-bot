@@ -86,17 +86,21 @@ async fn respond(
 	card_result: Result<Option<Card>>,
 	identifier: &str,
 ) -> Result<()> {
-	let Some(mut card) = card_result? else {
-		ctx.say(format!("Could not find a card matching `{}`!", identifier)).await?;
-		return Ok(());
-	};
-
-	card.card_prices.retain(|_, arr| !arr.is_empty());
-
-	if card.card_prices.is_empty() {
-		ctx.say(format!("Oops! `{}` is not in stock.", card.name.en)).await?;
-		return Ok(());
+	match card_result? {
+		Some(mut card) => {
+			card.card_prices.retain(|_, arr| !arr.is_empty());
+			if card.card_prices.is_empty() {
+				ctx.say(format!("Oops! `{}` is not in stock.", card.name.en)).await?;
+			}
+			else {
+				let embeds_map = create_embeds_map(&card);
+				let mut pagination = Pagination::new(ctx, &card.name.en, &embeds_map);
+				pagination.start().await?;
+			}
+		}
+		None => {
+			ctx.say(format!("Could not find a card matching `{}`!", identifier)).await?;
+		}
 	}
-
-	Pagination::new(ctx, &create_embeds_map(&card)).start().await
+	Ok(())
 }
