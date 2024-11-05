@@ -59,7 +59,7 @@ async fn serenity(
 		.options(poise::FrameworkOptions {
 			commands: vec![prices_name(), prices_database_id(), prices_password(), prices_set_number(), help()],
 			prefix_options: poise::PrefixFrameworkOptions {
-				prefix: Some(prefix.into()),
+				prefix: Some(prefix),
 				edit_tracker: Some(Arc::new(poise::EditTracker::for_timespan(std::time::Duration::from_secs(3600)))),
 				case_insensitive_commands: true,
 				..Default::default()
